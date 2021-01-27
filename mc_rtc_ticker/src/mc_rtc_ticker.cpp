@@ -2,8 +2,6 @@
  * Copyright 2016-2019 CNRS-UM LIRMM, CNRS-AIST JRL
  */
 
-#include "ContactForcePublisher.h"
-
 #include <mc_control/mc_global_controller.h>
 #include <mc_rtc/config.h>
 #include <mc_rtc/logging.h>
@@ -112,7 +110,7 @@ int main()
 
   bool stepByStep = getParam(nh, "mc_rtc_ticker/stepByStep", false);
   size_t nextStep = 0;
-  auto gui = controller.controller().gui();
+  auto & gui = controller.controller().gui();
   auto toogleStepByStep = [&]() {
     if(stepByStep)
     {
@@ -124,21 +122,20 @@ int main()
       stepByStep = true;
     }
   };
-  if(gui)
   {
-    gui->addElement({"mc_rtc_ticker"},
-                    mc_rtc::gui::Checkbox("Step by step", [&]() { return stepByStep; }, [&]() { toogleStepByStep(); }));
+    gui.addElement({"mc_rtc_ticker"},
+                   mc_rtc::gui::Checkbox("Step by step", [&]() { return stepByStep; }, [&]() { toogleStepByStep(); }));
     auto dt = controller.timestep();
     auto buttonText = [&](size_t n) {
       size_t n_ms = std::ceil(n * 1000 * dt);
       return "+" + std::to_string(n_ms) + "ms";
     };
-    gui->addElement({"mc_rtc_ticker"}, mc_rtc::gui::ElementsStacking::Horizontal,
-                    mc_rtc::gui::Button(buttonText(1), [&]() { nextStep = 1; }),
-                    mc_rtc::gui::Button(buttonText(5), [&]() { nextStep = 5; }),
-                    mc_rtc::gui::Button(buttonText(10), [&]() { nextStep = 10; }),
-                    mc_rtc::gui::Button(buttonText(50), [&]() { nextStep = 20; }),
-                    mc_rtc::gui::Button(buttonText(100), [&]() { nextStep = 100; }));
+    gui.addElement({"mc_rtc_ticker"}, mc_rtc::gui::ElementsStacking::Horizontal,
+                   mc_rtc::gui::Button(buttonText(1), [&]() { nextStep = 1; }),
+                   mc_rtc::gui::Button(buttonText(5), [&]() { nextStep = 5; }),
+                   mc_rtc::gui::Button(buttonText(10), [&]() { nextStep = 10; }),
+                   mc_rtc::gui::Button(buttonText(50), [&]() { nextStep = 20; }),
+                   mc_rtc::gui::Button(buttonText(100), [&]() { nextStep = 100; }));
   }
 
   const bool bench = getParam(nh, "mc_rtc_ticker/bench", false);
@@ -182,13 +179,6 @@ int main()
               << "ms, max: " << max_t.count() * 1000 << "ms, second max: " << second_max_t.count() * 1000 << std::endl;
   };
 
-  const bool publish_contact_forces = getParam(nh, "mc_rtc_ticker/publish_contact_forces", true);
-  std::unique_ptr<mc_rtc_ros::ContactForcePublisher> cfp_ptr = nullptr;
-  if(publish_contact_forces)
-  {
-    cfp_ptr.reset(new mc_rtc_ros::ContactForcePublisher(nh, controller));
-  }
-
   ros::Rate rt(1 / dt);
   std::thread spin_th;
   if(bench)
@@ -204,10 +194,7 @@ int main()
 
   auto runController = [&]() {
     controller.setEncoderValues(q);
-    if(controller.run() && cfp_ptr)
-    {
-      cfp_ptr->update();
-    }
+    controller.run();
   };
 
   auto updateGUI = [&]() {
@@ -273,10 +260,6 @@ int main()
   {
     report_dt(false);
     spin_th.join();
-  }
-  if(cfp_ptr)
-  {
-    cfp_ptr->stop();
   }
 
   return 0;

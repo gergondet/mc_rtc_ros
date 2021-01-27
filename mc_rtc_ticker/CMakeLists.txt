@@ -10,17 +10,15 @@ project(${PROJECT_NAME} LANGUAGES CXX VERSION 1.1.0)
 find_package(catkin REQUIRED)
 catkin_package()
 
-find_package(mc_rtc 1.3.0 REQUIRED)
+find_package(mc_rtc 2.0.0 REQUIRED)
 
 include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
 
 set(MC_RTC_TICKER_SRC
       src/mc_rtc_ticker.cpp
-      src/ContactForcePublisher.cpp
 )
 
 set(MC_RTC_TICKER_HDR
-      src/ContactForcePublisher.h
 )
 
 add_executable(mc_rtc_ticker ${MC_RTC_TICKER_SRC} ${MC_RTC_TICKER_HDR})

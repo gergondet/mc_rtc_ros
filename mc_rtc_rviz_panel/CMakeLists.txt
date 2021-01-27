@@ -11,7 +11,7 @@ project(${PROJECT_NAME} LANGUAGES CXX VERSION 1.1.0)
 
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(mc_rtc REQUIRED)
+find_package(mc_rtc 2.0.0 REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/CMakeModules)
 find_package(Qwt)
